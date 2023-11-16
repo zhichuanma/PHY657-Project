@@ -1,0 +1,43 @@
+parameters:
+eff_SOEC: energy input/hydrogen output
+eff_SOFC: hydrogen input/energy output
+V_max: the tank capacity
+P_SOEC: the max power rate of SOEC
+P_SOFC: the max power rate of SOFC
+P(t): electricity price at time t
+t = 1,...
+
+variables:
+x1(t): binary, x1 = 1 if SOEC uses the electricity to produce the hydrogen gas, x1 = 0 if...
+x2(t): binary, x2 = 1 if SOFC uses the hydrogen gas to produce the electricity, x2 = 0 if...
+E(t): the electricity energy at time t
+V(t): the hydrogen gas at time t
+
+Objective: Total_cost = cost(Vmax) + sum(E(t)P(t))
+
+constraints: 
+# transition between hydrogen gas and electricity
+E(t) = x1(t) * V(t) / eff_SOEC + x2(t) * V(t) * eff_SOFC
+
+# either SOEC work, or SOFC work, or no work
+x1(t) + x2(t) <= 1
+
+# big M method
+E(t) >= -(1-x1(t))M
+E(t) <= (1-x2(t))M
+
+# Tank Volume constraints
+sum_1_t(V(t)) <= Vmax
+
+V(t) <= Vmax
+V(t) >= -Vmax
+
+# tank is empty, at the exit
+-V(t) * x2(t) <= sum_1_(t-1)(V(t))
+ 
+# tank is full, at the entrance
+V(t) * x1(t) < (V(max)-sum_1_(t-1)(V(t)))
+
+# Power limit
+E(t) <= P_SOEC * 1
+E(t) >= P_SOFC * eff_SOFC * 1
