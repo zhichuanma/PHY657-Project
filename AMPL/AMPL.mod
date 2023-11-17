@@ -1,13 +1,11 @@
 set Time;           # Time series
 
-param eff_SOEC;     # Energy input/Hydrogen output
-param eff_SOFC;		# Hydrogen input/Energy output
-param V_max;        # The size of the tank
-param P {Time};     # Electricity price at time t
-param P_SOEC;       # The max power rate of SOEC
-param P_SOFC;       # The max power rate of SOFC
-param power_SOEC := 1 #MW 
-param power_SOFC := 1 #MW
+param eff_SOEC > 0;     # Energy input/Hydrogen output
+param eff_SOFC > 0;		# Hydrogen input/Energy output
+param V_max > 0;        # The size of the tank
+param Price {Time};     # Electricity price at time t
+param P_SOEC > 0;       # The max power rate of SOEC
+param P_SOFC > 0;       # The max power rate of SOFC
 
 var x1 {Time} binary;      # x1 = 1 if SOEC uses the electricity 
 						   # to produce the hydrogen gas, x1 = 0 if...
@@ -19,13 +17,13 @@ var E {Time};			   # The electricity energy at time t
 var V {Time};		       # The hydrogen gas at time t	
 var C {Time} >= 0;         # The cumulated gas in the tank
 
-minimize Cost: V_max + sum{t in Time} P[t] * E[t];
+minimize Cost: V_max + sum{t in Time} Price[t] * E[t];
 
 subject to Transition_Hydrogen_Electricity1 {t in Time}: 
-E[t] = x1[t] * V[t] / eff_SOEC + X2[t] * V[t] * eff_SOFC;
+E[t] = x1[t] * V[t] / eff_SOEC + x2[t] * V[t] * eff_SOFC;
 
 subject to Transition_Hydrogen_Electricity2 {t in Time}: 
-V[t] = E[t] * x1[t] * eff_SOEC + X2[t] * E[t] / eff_SOFC;
+V[t] = E[t] * x1[t] * eff_SOEC + x2[t] * E[t] / eff_SOFC;
 
 subject to Working_Mode {t in Time}: 
 x1[t] + x2[t] <= 1;
@@ -46,9 +44,9 @@ subject to VolumeConstraint{t in Time}:
     C[t] <= V_max;
 
 subject to Powerlimit1 {t in Time}: 
-	E[t] <= P_SOEC * power_SOEC;
+	E[t] <= P_SOEC * 1;
 	
 subject to Powerlimit2 {t in Time}: 
-	E[t] <= P_SOFC * power_SOFC;
+	E[t] <= P_SOFC * 1 * eff_SOFC;
 
 

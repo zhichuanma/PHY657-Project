@@ -1,0 +1,9 @@
+read table "Weekly_data.csv"
+    into Time <- [Datetime (Local)],
+         Price <- [Price (EUR/MWhe)];
+
+param eff_SOEC := 0.5;
+param eff_SOFC := 0.5;
+param V_max := 5;
+param P_SOEC := 1;
+param P_SOFC := 1;

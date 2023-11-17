@@ -1,0 +1,6 @@
+reset;
+model AMPL.mod;
+data AMPL.dat;
+option solver cplex;
+solve;
+display x1, x2, E, V, C;
