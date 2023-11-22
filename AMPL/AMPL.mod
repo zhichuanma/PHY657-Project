@@ -3,7 +3,7 @@ set Time;           # Time series
 param eff_SOEC > 0;     # Energy input/Hydrogen output
 param eff_SOFC > 0;		# Hydrogen input/Energy output
 param V_max > 0;        # The size of the tank
-param Price {Time};     # Electricity price at time t
+param Price {Time} >= 0;     # Electricity price at time t
 param P_SOEC > 0;       # The max power rate of SOEC
 param P_SOFC > 0;       # The max power rate of SOFC
 

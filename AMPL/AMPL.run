@@ -1,5 +1,10 @@
 reset;
 model AMPL.mod;
+
+table electricity_price IN "amplcsv" "Weekly_data.csv": Time <- [Datetime], Price;
+
+read table electricity_price;
+
 data AMPL.dat;
 option solver cplex;
 solve;
