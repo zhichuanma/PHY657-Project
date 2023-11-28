@@ -82,6 +82,10 @@ def power_limit2_rule(model, t):
 model.Powerlimit2 = Constraint(model.Time, rule=power_limit2_rule)
 
 
+def Initial_value(model):
+    return model.E[t] <= model.P_SOFC * model.eff_SOFC
+model.Powerlimit2 = Constraint(model.Time, rule=power_limit2_rule)
+
 # Assuming you have defined and solved your model as shown previously
 solver = SolverFactory('IPOPT')  # Replace 'glpk' with the solver you are using
 results = solver.solve(model, tee=True)
@@ -98,3 +102,36 @@ if (results.solver.status == SolverStatus.ok) and (results.solver.termination_co
         print(f"  C = {model.C[t].value}")
 else:
     print("No optimal solution found.")
+
+import matplotlib.pyplot as plt
+import re
+
+# Assuming 'solver_log.txt' is a file that contains the solver's iteration log
+# with lines that include the iteration number and corresponding objective value.
+log_file = 'solver_log.txt'
+
+# Initialize lists to hold iteration numbers and objective function values
+iterations = []
+objective_values = []
+
+# Regex pattern to match lines in the log file
+# This will need to be adjusted based on the actual format of your log file.
+pattern = re.compile(r'Iteration (\d+):.+Objective value: ([\d\.]+)')
+
+# Read the log file and extract iteration and objective function values
+with open(log_file, 'r') as file:
+    for line in file:
+        match = pattern.search(line)
+        if match:
+            iter_num = int(match.group(1))
+            obj_val = float(match.group(2))
+            iterations.append(iter_num)
+            objective_values.append(obj_val)
+
+# Plotting the objective function values against iteration values
+plt.plot(iterations, objective_values, marker='o')
+plt.xlabel('Iteration')
+plt.ylabel('Objective Function Value')
+plt.title('Objective Function Value vs Iteration')
+plt.grid(True)
+plt.show()
