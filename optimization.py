@@ -1,7 +1,7 @@
 from pyomo.environ import *
 import pandas as pd
 Price_data = pd.read_csv(".//database//Yearly_data.csv")
-#print(Price_data['Price (EUR/MWhe)'])
+print(Price_data['Price (EUR/MWhe)'])
 
 # Define the model
 model = ConcreteModel()
@@ -14,6 +14,8 @@ model = ConcreteModel()
 
 # Sets
 model.Time = Set(initialize=Price_data['Datetime (Local)'])  # Example Time set, you need to define this properly based on your problem
+
+print(Price_data['Datetime (Local)'])
 
 # Parameters with specified values
 model.eff_SOEC = Param(initialize=0.5)
