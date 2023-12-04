@@ -1,6 +1,6 @@
 from pulp import *
 import pandas as pd
-
+import numpy as np
 df = pd.read_csv(".//database//Monthly_data.csv")
 
 # Define the time period
@@ -13,7 +13,6 @@ V_max = 5
 P_SOEC = 1
 P_SOFC = 1 
 Price = df['Price (EUR/MWhe)']
-
 
 # Elementary features:
 
