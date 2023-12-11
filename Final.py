@@ -1,6 +1,6 @@
 from pulp import *
 import pandas as pd
-import numpy as np
+
 df = pd.read_csv(".//database//Monthly_data.csv")
 
 # Define the time period

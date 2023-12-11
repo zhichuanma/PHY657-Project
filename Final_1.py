@@ -7,8 +7,15 @@ df = pd.read_csv(".//database//Monthly_data.csv")
 time_periods = df["Datetime (Local)"]
 
 # Define parameters
-eff_SOEC = 0.5
-eff_SOFC = 0.5
+'''
+The eff_SOEC's unit is kWh/m^3
+it means the quantity of electricity energy input in a return of 1 m^3 hydrogen gas,
+taking into consideration of the efficiency
+the desity of hydrogen: 0.08 kg/m^3
+transfer efficiency: 90%
+'''
+eff_SOEC = 39.82 * 0.08 * 0.9
+eff_SOFC = 27 * 0.08 * 0.9
 V_max = 5
 P_SOEC = 1
 P_SOFC = 1 
@@ -30,7 +37,7 @@ V = {t: LpVariable(f"V_{t}", cat="Continuous") for t in time_periods}
 C = {t: LpVariable(f"C_{t}", lowBound=0, cat="Continuous") for t in time_periods}
 
 # Add the objective function
-objective_function = V_max + sum(Price[t] * E[t] for t in time_periods)
+objective_function = 287.93 * V_max * 1.3 + sum(Price[t] * E[t] for t in time_periods)
 lp += objective_function
 
 # Add contraints
