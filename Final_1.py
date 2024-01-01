@@ -8,14 +8,16 @@ time_periods = df["Datetime (Local)"]
 
 # Define parameters
 '''
-The eff_SOEC's unit is kWh/m^3
+The eff_SOEC's and eff_SOFC'S units are both kWh/m^3
 it means the quantity of electricity energy input in a return of 1 m^3 hydrogen gas,
 taking into consideration of the efficiency
 the desity of hydrogen: 0.08 kg/m^3
 transfer efficiency: 90%
 '''
-eff_SOEC = 39.82 * 0.08 * 0.9
-eff_SOFC = 27 * 0.08 * 0.9
+eff_SOEC = 39.82 * 0.08 * 0.9 #39.82's unit is kWh/kg
+eff_SOFC = 27 * 0.08 * 0.9 # 27's unit is kWh/kg
+#eff_SOEC =  1
+#eff_SOFC =  2
 V_max = 5
 P_SOEC = 1
 P_SOFC = 1 
@@ -40,7 +42,7 @@ C = {t: LpVariable(f"C_{t}", lowBound=0, cat="Continuous") for t in time_periods
 objective_function = 287.93 * V_max * 1.3 + sum(Price[t] * E[t] for t in time_periods)
 lp += objective_function
 
-# Add contraints
+# Add constraints
 
 for t in time_periods:
     lp += z1[t] <= M * x1[t]  # z1[t] is 0 when x1[t] is 0
