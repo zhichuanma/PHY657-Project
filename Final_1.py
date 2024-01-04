@@ -58,8 +58,8 @@ for t in time_periods:
     lp += E[t] == z1[t] * (1 / eff_SOEC) + z2[t] * eff_SOFC, f"transition_rule1_t{t}"
 
 # Transition_hydrogen_electricity2_rule
-for t in time_periods:
-    lp += V[t] == z1[t] * eff_SOEC + z2[t] * (1 / eff_SOFC), f"transition_rule2_t{t}"
+#for t in time_periods:
+#    lp += V[t] == z1[t] * eff_SOEC + z2[t] * (1 / eff_SOFC), f"transition_rule2_t{t}"
 
 # Working mode rule
 for t in time_periods:
@@ -102,5 +102,20 @@ for t in time_periods:
 for t in time_periods:
    lp += E[t] <= P_SOFC * eff_SOFC, f"Power_limit2_rule_t{t}"
 
+# Set a time limit
+solver = PULP_CBC_CMD(timeLimit=1800)
+
 # Solve the problem
-lp.solve()
+lp.solve(solver)
+
+x1_values = {t: pulp.value(x1[t]) for t in time_periods}
+x2_values = {t: pulp.value(x2[t]) for t in time_periods}
+C_values = {t: pulp.value(C[t]) for t in time_periods}
+V_values = {t: pulp.value(V[t]) for t in time_periods}
+E_values = {t: pulp.value(E[t]) for t in time_periods}
+print("Value of x1:", x1_values)
+print("Value of x2:", x2_values)
+
+print("Value of C:", C_values)
+print("Value of V:", V_values)
+print("Value of E:", E_values)
