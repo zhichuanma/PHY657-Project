@@ -1,21 +1,21 @@
 from pulp import *
 import pandas as pd
 
-df = pd.read_csv(".//database//Monthly_data.csv")
+df = pd.read_csv(".//database//Weekly_data.csv")
 
 # Define the time period
 time_periods = df["Datetime (Local)"]
 
 # Define parameters
 '''
-The eff_SOEC's and eff_SOFC'S units are both kWh/m^3
+The eff_SOEC's and eff_SOFC'S units are both MWh/m^3
 it means the quantity of electricity energy input in a return of 1 m^3 hydrogen gas,
 taking into consideration of the efficiency
 the desity of hydrogen: 0.08 kg/m^3
 transfer efficiency: 90%
 '''
-eff_SOEC = 39.82 * 0.08 * 0.9 #39.82's unit is kWh/kg
-eff_SOFC = 27 * 0.08 * 0.9 # 27's unit is kWh/kg
+eff_SOEC = 39.82 * 0.08 * 0.9 * 0.001 #39.82's unit is kWh/kg
+eff_SOFC = 27 * 0.08 * 0.9 * 0.001 # 27's unit is kWh/kg
 #eff_SOEC =  1
 #eff_SOFC =  2
 V_max = 5
@@ -39,7 +39,7 @@ V = {t: LpVariable(f"V_{t}", cat="Continuous") for t in time_periods}
 C = {t: LpVariable(f"C_{t}", lowBound=0, cat="Continuous") for t in time_periods}
 
 # Add the objective function
-objective_function = 287.93 * V_max * 1.3 + sum(Price[t] * E[t] for t in time_periods)
+objective_function = -287.93 * V_max * 1.3 - sum(Price[t] * E[t] for t in time_periods)
 lp += objective_function
 
 # Add constraints
@@ -55,7 +55,7 @@ for t in time_periods:
 
 # Transition_hydrogen_electricity1_rule
 for t in time_periods:
-    lp += E[t] == z1[t] * (1 / eff_SOEC) + z2[t] * eff_SOFC, f"transition_rule1_t{t}"
+    lp += E[t] == z1[t] * (1 / eff_SOEC) - z2[t] * eff_SOFC, f"transition_rule1_t{t}"
 
 # Transition_hydrogen_electricity2_rule
 #for t in time_periods:
