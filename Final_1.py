@@ -16,8 +16,7 @@ transfer efficiency: 90%
 '''
 eff_SOEC = 39.82 * 0.08 * 0.9 * 0.001 #39.82's unit is kWh/kg
 eff_SOFC = 27 * 0.08 * 0.9 * 0.001 # 27's unit is kWh/kg
-#eff_SOEC =  1
-#eff_SOFC =  2
+
 V_max = 5
 P_SOEC = 1
 P_SOFC = 1 
@@ -31,9 +30,7 @@ lp = LpProblem("Profit_making", LpMaximize)
 x1 = {t: LpVariable(f"x1_{t}", cat="Binary") for t in time_periods}
 x2 = {t: LpVariable(f"x2_{t}", cat="Binary") for t in time_periods}
 z1 = {t: LpVariable(f"z1_{t}",lowBound=0, cat="Continuous") for t in time_periods}
-z2 = {t: LpVariable(f"z2_{t}",lowBound=0, cat="Continuous") for t in time_periods}
-w1 = {t: LpVariable(f"w1_{t}",lowBound=0, cat="Continuous") for t in time_periods}
-w2 = {t: LpVariable(f"w2_{t}",lowBound=0, cat="Continuous") for t in time_periods}
+z2 = {t: LpVariable(f"z2_{t}",upBound=0, cat="Continuous") for t in time_periods}
 E = {t: LpVariable(f"E_{t}", cat="Continuous") for t in time_periods}
 V = {t: LpVariable(f"V_{t}", cat="Continuous") for t in time_periods}
 C = {t: LpVariable(f"C_{t}", lowBound=0, cat="Continuous") for t in time_periods}
@@ -55,7 +52,7 @@ for t in time_periods:
 
 # Transition_hydrogen_electricity1_rule
 for t in time_periods:
-    lp += E[t] == z1[t] * (1 / eff_SOEC) - z2[t] * eff_SOFC, f"transition_rule1_t{t}"
+    lp += E[t] == z1[t] * (1 / eff_SOEC) + z2[t] * eff_SOFC, f"transition_rule1_t{t}"
 
 # Transition_hydrogen_electricity2_rule
 #for t in time_periods:
@@ -66,20 +63,15 @@ for t in time_periods:
     lp += x1[t] + x2[t] <= 1, f"working_mode_rule_t{t}"
 
 for t in time_periods:
-    lp += w1[t] >= C[t] - M * x1[t]  # w1[t] is at least C[t] when x1[t] is 0
-    lp += w1[t] <= M * (1 - x1[t])   # w1[t] is 0 when x1[t] is 1
+    if t == time_periods[0]:  # Skip the first time period if initial C[t-1] is not defined
+        continue
+    # When x1[t] is 1, enforce 0 <= V(t) <= V_max - C(t-1)
+    lp += V[t] >= 0 - M * (1 - x1[t]), f"lower_bound_V_t{t}_when_x1"
+    lp += V[t] <= (V_max - C[t-1]) + M * (1 - x1[t]), f"upper_bound_Vmax_minus_C_t{t}_when_x1"
 
-# Rest_volume_limit_1_rule
-for t in time_periods:
-    lp += V[t] >= -w1[t], f"rest_volume_limit_1_rule_t{t}"
-
-for t in time_periods:
-    lp += w2[t] >= (V_max - C[t]) - M * x2[t]  # W2[t] is at least V_max - C[t] when x2[t] is 0
-    lp += w2[t] <= M * (1 - x2[t])             # W2[t] is 0 when x2[t] is 1
-
-# Rest_volume_limit_2_rule
-for t in time_periods:
-    lp += V[t] <= w2[t], f"rest_volume_limit_2_rule_t{t}"
+    # When x2[t] is 1, enforce -C(t-1) <= V(t) <= 0
+    lp += V[t] >= -C[t-1] - M * (1 - x2[t]), f"lower_bound_minus_C_t{t}_when_x2"
+    lp += V[t] <= 0 + M * x2[t], f"upper_bound_V_t{t}_when_x2"
 
 # Initial_condition_rule
 lp += C[time_periods[0]] == 0, f"Initial_condition_rule_t{t}"
