@@ -65,13 +65,11 @@ for t in time_periods:
 for t in time_periods:
     if t == time_periods[0]:  # Skip the first time period if initial C[t-1] is not defined
         continue
-    # When x1[t] is 1, enforce 0 <= V(t) <= V_max - C(t-1)
-    lp += V[t] >= 0 - M * (1 - x1[t]), f"lower_bound_V_t{t}_when_x1"
-    lp += V[t] <= (V_max - C[t-1]) + M * (1 - x1[t]), f"upper_bound_Vmax_minus_C_t{t}_when_x1"
+    # Constraint for when x1[t] is 1 and x2[t] is 0
+    lp += V[t] <= (V_max - C[t]) + M * (1 - x1[t]), f"V_leq_Vmax_minus_C_when_x1_1_t{t}"
+    # Constraint for when x1[t] is 0 and x2[t] is 1
+    lp += V[t] >= -C[t] - M *(1 - x2[t]), f"V_ge_minus_C_when_x2_1_t{t}"
 
-    # When x2[t] is 1, enforce -C(t-1) <= V(t) <= 0
-    lp += V[t] >= -C[t-1] - M * (1 - x2[t]), f"lower_bound_minus_C_t{t}_when_x2"
-    lp += V[t] <= 0 + M * x2[t], f"upper_bound_V_t{t}_when_x2"
 
 # Initial_condition_rule
 lp += C[time_periods[0]] == 0, f"Initial_condition_rule_t{t}"
