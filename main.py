@@ -31,8 +31,8 @@ def Cost_Calculating(V_max, type, time_scale):
     the desity of hydrogen: 0.08 kg/m^3
     transfer efficiency: 90%
     '''
-    eff_SOEC = 39.82 * 0.08 * 0.9 #39.82's unit is MWh/kg
-    eff_SOFC = 27 * 0.08 * 0.9 # 27's unit is MWh/kg
+    eff_SOEC = 39.82 * 0.08 * 0.9  #39.82's unit is MWh/kg
+    eff_SOFC = 27 * 0.08 * 0.9  # 27's unit is MWh/kg
 
     P_SOEC = 1 # MW
     P_SOFC = 1 # MW
@@ -47,7 +47,7 @@ def Cost_Calculating(V_max, type, time_scale):
     x2 = {t: LpVariable(f"x2_{t}", cat="Binary") for t in time_periods}
     E_in = {t: LpVariable(f"E_in_{t}",lowBound=0, cat="Continuous") for t in time_periods}
     E_out = {t: LpVariable(f"E_out_{t}",lowBound=0, cat="Continuous") for t in time_periods}
-    C = {t: LpVariable(f"C_{t}", lowBound=0, cat="Continuous") for t in time_periods}
+    C = {t: LpVariable(f"C_{t}", lowBound=0.05 * V_max, cat="Continuous") for t in time_periods}
     V = {t: LpVariable(f"V_{t}", cat="Continuous") for t in time_periods}
 
     # Add the objective function
@@ -67,7 +67,7 @@ def Cost_Calculating(V_max, type, time_scale):
         lp += E_out[t] <= P_SOFC * x2[t], f"Power_limit2_rule_t{t}"
 
     # Initial_condition_rule
-    lp += C[time_periods[0]] == 0, f"Initial_condition_rule_t{t}"
+    lp += C[time_periods[0]] == 0.05 * V_max, f"Initial_condition_rule_t{t}"
 
     # Cumulative_gas_rule
     for t in time_periods:
@@ -91,20 +91,22 @@ def Cost_Calculating(V_max, type, time_scale):
     print("Solver Status:", LpStatus[lp.status])
 
     # Print optimal values of decision variables
+    
+    C_temp = []
+
     for t in time_periods:
+        C_temp.append(pulp.value(C[t]))
         print(f"Time {t}: x1={pulp.value(x1[t])}, x2={pulp.value(x2[t])}, C={pulp.value(C[t])}, V={pulp.value(V[t])}, E_in={pulp.value(E_in[t])}, E_out={pulp.value(E_out[t])}")
 
     # Print optimal objective value
     print("Optimal Objective Value:", pulp.value(lp.objective))
-    return pulp.value(lp.objective)
+    return pulp.value(lp.objective), C_temp
 
 # Range for V_max
-V_max_values = np.linspace(start=10, stop=20, num=20)  
+V_max_values = np.linspace(start=0, stop=2, num=20)  
 
 # Calculate costs for each V_max value
-costs = [Cost_Calculating(v, '350bar', time_scale = 'Yearly') for v in V_max_values]
-
-print(costs)
+costs = [Cost_Calculating(v, '700bar', time_scale = 'Weekly')[0] for v in V_max_values]
 
 # Plotting
 plt.plot(V_max_values, costs, marker='o')  # 'o' is for circular markers
@@ -113,3 +115,19 @@ plt.xlabel('V_max')
 plt.ylabel('Cost')
 plt.grid(True)
 plt.show()
+
+
+
+# # Range for V_max, increased number of points for smooth curve
+# V_max_values_continuous = np.linspace(start=10, stop=20, num=100)  
+
+# # Calculate costs for each V_max value
+# costs_continuous = [Cost_Calculating(v, '350bar', time_scale = 'Yearly')[0] for v in V_max_values_continuous]
+
+# # Plotting
+# plt.plot(V_max_values_continuous, costs_continuous)  # Removing marker for a smooth curve
+# plt.title('Cost vs V_max (Continuous)')
+# plt.xlabel('V_max')
+# plt.ylabel('Cost')
+# plt.grid(True)
+# plt.show()
